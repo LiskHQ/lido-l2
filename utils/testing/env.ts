@@ -42,6 +42,23 @@ export default {
   OPT_GOV_BRIDGE_EXECUTOR() {
     return env.address("TESTING_OPT_GOV_BRIDGE_EXECUTOR");
   },
+
+  LISK_L1_TOKEN() {
+    return env.address("TESTING_LISK_L1_TOKEN");
+  },
+  LISK_L2_TOKEN() {
+    return env.address("TESTING_LISK_L2_TOKEN");
+  },
+  LISK_L1_ERC20_TOKEN_BRIDGE() {
+    return env.address("TESTING_LISK_L1_ERC20_TOKEN_BRIDGE");
+  },
+  LISK_L2_ERC20_TOKEN_BRIDGE() {
+    return env.address("TESTING_LISK_L2_ERC20_TOKEN_BRIDGE");
+  },
+  LISK_GOV_BRIDGE_EXECUTOR() {
+    return env.address("TESTING_LISK_GOV_BRIDGE_EXECUTOR");
+  },
+
   L1_DEV_MULTISIG() {
     return env.address("L1_DEV_MULTISIG");
   },

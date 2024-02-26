@@ -4,6 +4,7 @@ coverage
 coverage.json
 typechain
 out
+dist
 
 #Hardhat files
 cache
@@ -11,3 +12,4 @@ cache
 
 .DS_Store
 .vscode
+.github

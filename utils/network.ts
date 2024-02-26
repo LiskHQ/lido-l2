@@ -6,7 +6,7 @@ import { HardhatRuntimeEnvironment, HttpNetworkConfig } from "hardhat/types";
 
 import env from "./env";
 
-type ChainNameShort = "arb" | "opt" | "eth";
+type ChainNameShort = "arb" | "opt" | "lisk" | "eth";
 export type NetworkName = "sepolia" | "mainnet";
 export type SignerOrProvider = Signer | Provider;
 
@@ -23,6 +23,10 @@ const HARDHAT_NETWORK_NAMES = {
     sepolia: "opt_sepolia",
     mainnet: "opt_mainnet",
   },
+  lisk: {
+    sepolia: "lisk_sepolia",
+    mainnet: "lisk_mainnet",
+  },
 };
 
 const HARDHAT_NETWORK_NAMES_FORK = {
@@ -37,6 +41,10 @@ const HARDHAT_NETWORK_NAMES_FORK = {
   opt: {
     sepolia: "opt_sepolia_fork",
     mainnet: "opt_mainnet_fork",
+  },
+  lisk: {
+    sepolia: "lisk_sepolia_fork",
+    mainnet: "lisk_mainnet_fork",
   },
 };
 
@@ -129,6 +137,10 @@ function getChainId(protocol: ChainNameShort, networkName: NetworkName) {
       mainnet: 42161,
       sepolia: 421613,
     },
+    lisk: {
+      mainnet: 4202, // TODO:Update this for Lisk mainnet
+      sepolia: 4202,
+    },
   };
   const chainId = chainIds[protocol][networkName];
   if (!chainId) {
@@ -150,6 +162,7 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     11155420: "https://blockscout.com/optimism/sepolia",
     // forked node
     31337: "https://etherscan.io",
+    4202: "https://sepolia-blockscout.lisk.com",
   };
   return baseUrlByChainId[chainId];
 }
