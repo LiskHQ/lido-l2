@@ -17,6 +17,7 @@
     "fork:opt:sepolia": "hardhat node:fork opt_sepolia 9545",
     "fork:opt:mainnet": "hardhat node:fork opt_mainnet 9545",
     "fork:lisk:sepolia": "hardhat node:fork lisk_sepolia 9545",
+    "fork:lisk:mainnet": "hardhat node:fork lisk_mainnet 9545",
     "arbitrum:deploy": "ts-node --files ./scripts/arbitrum/deploy-gateway.ts",
     "arbitrum:finalize-message": "ts-node --files ./scripts/arbitrum/finalize-message.ts",
     "arbitrum:test:e2e": "hardhat test ./test/arbitrum/*.e2e.test.ts",
