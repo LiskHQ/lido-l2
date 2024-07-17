@@ -3,11 +3,11 @@
 
 pragma solidity 0.8.10;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 /// @author psirex
 /// @notice Contains administrative methods to retrieve and control the state of the bridging
-contract BridgingManager is AccessControl {
+contract BridgingManager is AccessControlEnumerable {
     /// @dev Stores the state of the bridging
     /// @param isInitialized Shows whether the contract is initialized or not
     /// @param isDepositsEnabled Stores the state of the deposits
