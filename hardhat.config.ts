@@ -36,14 +36,16 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    // Set the following config before running the local eth sepolia fork
-    // hardhat: {
-    //   chainId: 11155111,
-    // },
-    // Set the following config before running the local lisk sepolia fork
-    // hardhat: {
-    //   chainId: 4202,
-    // },
+    hardhat: {
+      // Set the following config before running the local eth sepolia fork
+      // chainId: 11155111,
+      // Set the following config before running the local eth mainnet fork
+      // chainId: 1,
+      // Set the following config before running the local lisk mainnet fork
+      chainId: 1135,
+      // Set the following config before running the local sepolia mainnet fork
+      // chainId: 4202,
+    },
     // Ethereum Public Chains
     eth_mainnet: {
       url: env.string("RPC_ETH_MAINNET", ""),
@@ -120,6 +122,7 @@ const config: HardhatUserConfig = {
       optimisticEthereum: env.string("ETHERSCAN_API_KEY_OPT", ""),
       opt_sepolia: env.string("ETHERSCAN_API_KEY_OPT", ""),
       lisk_sepolia: "123",
+      lisk_mainnet: "123"
     },
     customChains: [
       {

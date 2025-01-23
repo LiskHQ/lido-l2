@@ -138,7 +138,7 @@ function getChainId(protocol: ChainNameShort, networkName: NetworkName) {
       sepolia: 421613,
     },
     lisk: {
-      mainnet: 4202, // TODO:Update this for Lisk mainnet
+      mainnet: 1135,
       sepolia: 4202,
     },
   };
@@ -160,9 +160,11 @@ function getBlockExplorerBaseUrlByChainId(chainId: number) {
     // optimism
     10: "https://optimistic.etherscan.io",
     11155420: "https://blockscout.com/optimism/sepolia",
+    // lisk
+    1135: "https://blockscout.lisk.com",
+    4202: "https://sepolia-blockscout.lisk.com",
     // forked node
     31337: "https://etherscan.io",
-    4202: "https://sepolia-blockscout.lisk.com",
   };
   return baseUrlByChainId[chainId];
 }
