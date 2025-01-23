@@ -64,7 +64,6 @@ const scenarioTest = scenario(
       ]);
 
     const liskAddresses = lisk.addresses("mainnet");
-    console.log("liskAddresses", liskAddresses);
 
     const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
       sender: ctx.lidoAragonDAO.agent.address,
@@ -141,23 +140,20 @@ scenarioTest.run();
 async function ctxFactory() {
   const ethLiskNetwork = network.multichain(["eth", "lisk"], "mainnet");
 
-  const liskAddresses = lisk.addresses("mainnet");
-  console.log("liskAddresses", liskAddresses);
-
-  const [l1Provider] = ethLiskNetwork.getProviders({ forking: true });
+  const [l1Provider] = ethLiskNetwork.getProviders({ forking: false });
   const [l1Tester, l2Tester] = ethLiskNetwork.getSigners(
     env.string("TESTING_PRIVATE_KEY"),
-    { forking: true }
+    { forking: false }
   );
 
   const [l1LDOHolder] = ethLiskNetwork.getSigners(
     env.string("TESTING_LISK_LDO_HOLDER_PRIVATE_KEY"),
-    { forking: true }
+    { forking: false }
   );
 
   return {
     lidoAragonDAO: lido("mainnet", l1Provider),
-    messaging: lisk.messaging("mainnet", { forking: true }),
+    messaging: lisk.messaging("mainnet", { forking: false }),
     gasAmount: wei`0.1 ether`,
     l1Tester,
     l2Tester,
