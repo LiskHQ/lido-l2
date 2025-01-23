@@ -6,7 +6,7 @@ import {
   GovBridgeExecutor__factory,
 } from "../../typechain";
 import {
-  E2E_TEST_CONTRACTS_LISK as E2E_TEST_CONTRACTS,
+  E2E_TEST_CONTRACTS_LISK_MAINNET as E2E_TEST_CONTRACTS,
   sleep,
 } from "../../utils/testing/e2e";
 import env from "../../utils/env";
@@ -63,7 +63,7 @@ const scenarioTest = scenario(
         [false, false],
       ]);
 
-    const liskAddresses = lisk.addresses("sepolia");
+    const liskAddresses = lisk.addresses("mainnet");
 
     const { calldata, callvalue } = await ctx.messaging.prepareL2Message({
       sender: ctx.lidoAragonDAO.agent.address,
@@ -138,7 +138,7 @@ scenarioTest.run();
 scenarioTest.run();
 
 async function ctxFactory() {
-  const ethLiskNetwork = network.multichain(["eth", "lisk"], "sepolia");
+  const ethLiskNetwork = network.multichain(["eth", "lisk"], "mainnet");
 
   const [l1Provider] = ethLiskNetwork.getProviders({ forking: false });
   const [l1Tester, l2Tester] = ethLiskNetwork.getSigners(
@@ -152,8 +152,8 @@ async function ctxFactory() {
   );
 
   return {
-    lidoAragonDAO: lido("sepolia", l1Provider),
-    messaging: lisk.messaging("sepolia", { forking: false }),
+    lidoAragonDAO: lido("mainnet", l1Provider),
+    messaging: lisk.messaging("mainnet", { forking: false }),
     gasAmount: wei`0.1 ether`,
     l1Tester,
     l2Tester,

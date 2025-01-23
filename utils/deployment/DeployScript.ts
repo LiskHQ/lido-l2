@@ -173,6 +173,7 @@ export class DeployScript {
       42161: "arb_mainnet",
       421613: "arb_sepolia",
       4202: "lisk_sepolia",
+      1135: "lisk_mainnet"
     };
     const networkName = networkNameByChainId[chainId] || "<NETWORK_NAME>";
     const arsString = stepInfo.args.map((a) => `"${a.value}"`).join(" ");

@@ -23,6 +23,7 @@ scenario("Lisk :: Launch integration test", ctxFactory)
 
   .step("Enable deposits", async (ctx) => {
     const { l1ERC20TokenBridge } = ctx;
+    await l1ERC20TokenBridge.disableDeposits();
     assert.isFalse(await l1ERC20TokenBridge.isDepositsEnabled());
 
     await l1ERC20TokenBridge.enableDeposits();
