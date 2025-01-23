@@ -5,12 +5,12 @@ pragma solidity 0.8.10;
 
 import {IERC20Bridged} from "./interfaces/IERC20Bridged.sol";
 
-import {ERC20Core} from "./ERC20Core.sol";
+import {ERC20Permit} from "./ERC20Permit.sol";
 import {ERC20Metadata} from "./ERC20Metadata.sol";
 
 /// @author psirex
 /// @notice Extends the ERC20 functionality that allows the bridge to mint/burn tokens
-contract ERC20Bridged is IERC20Bridged, ERC20Core, ERC20Metadata {
+contract ERC20Bridged is IERC20Bridged, ERC20Permit, ERC20Metadata {
     /// @inheritdoc IERC20Bridged
     address public immutable bridge;
 
@@ -23,7 +23,14 @@ contract ERC20Bridged is IERC20Bridged, ERC20Core, ERC20Metadata {
         string memory symbol_,
         uint8 decimals_,
         address bridge_
-    ) ERC20Metadata(name_, symbol_, decimals_) {
+    ) 
+        ERC20Permit(name_)
+        ERC20Metadata(
+            name_,
+            symbol_,
+            decimals_
+        )
+    {
         bridge = bridge_;
     }
 

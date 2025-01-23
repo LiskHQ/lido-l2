@@ -3,6 +3,7 @@ import hre from "hardhat";
 import {
   ERC20Bridged__factory,
   OssifiableProxy__factory,
+  AccountStub__factory,
 } from "../../typechain";
 import { unit } from "../../utils/testing";
 import { wei } from "../../utils/wei";
@@ -475,6 +476,299 @@ unit("ERC20Bridged", ctxFactory)
     },
   ])
 
+  .test("permit()", async (ctx) => {
+    const { erc20Bridged } = ctx;
+    const { premint } = ctx.constants;
+    const { recipient, holder } = ctx.accounts;
+
+    // validate balance before permit
+    assert.equalBN(await erc20Bridged.balanceOf(holder.address), premint);
+    assert.equalBN(await erc20Bridged.balanceOf(recipient.address), 0);
+
+    // validate allowance before permit
+    assert.equalBN(await erc20Bridged.allowance(holder.address, recipient.address), 0);
+
+    // amount that will be permitted
+    const amount = wei`1 ether`;
+
+    // get the nonce of the holder
+    const nonce = await erc20Bridged.nonces(holder.address);
+
+    // build deadline for the permit
+    const deadline = Math.floor(Date.now() / 1000) + 3600;
+
+    // build the domain data for permit hash
+    const domainData = {
+      name: await erc20Bridged.name(),
+      version: "1",
+      chainId: (await hre.ethers.provider.getNetwork()).chainId,
+      verifyingContract: erc20Bridged.address,
+    };
+
+    // build the types and values for permit hash
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+    const value = {
+      owner: holder.address,
+      spender: recipient.address,
+      value: amount,
+      nonce,
+      deadline,
+    };
+
+    // sign the permit hash
+    const signature = await holder._signTypedData(domainData, types, value);
+
+    // split the signature into its components
+    const sig = hre.ethers.utils.splitSignature(signature);
+
+    // perform the permit and ensure the allowance
+    await erc20Bridged.permit(
+      holder.address,
+      recipient.address,
+      amount,
+      deadline,
+      sig.v,
+      sig.r,
+      sig.s
+    );
+    assert.equalBN(await erc20Bridged.allowance(holder.address, recipient.address), wei.toBigNumber(amount));
+
+    // ensure recipient can transfer the tokens, and that the balance is updated
+    await erc20Bridged.connect(recipient).transferFrom(holder.address, recipient.address, amount);
+    assert.equalBN(
+      await erc20Bridged.balanceOf(recipient.address),
+      wei.toBigNumber(amount)
+    );
+    assert.equalBN(
+      await erc20Bridged.balanceOf(holder.address),
+      wei.toBigNumber(premint).sub(amount)
+    );
+  })
+
+  .test("permit() :: invalid signature", async (ctx) => {
+    const { erc20Bridged } = ctx;
+    const { premint } = ctx.constants;
+    const { recipient, holder } = ctx.accounts;
+
+    // amount that will be permitted
+    const amount = wei`1 ether`;
+
+    // get the nonce of the holder
+    const nonce = await erc20Bridged.nonces(holder.address);
+
+    // build deadline for the permit
+    const deadline = Math.floor(Date.now() / 1000) + 3600;
+
+    // build the domain data for permit hash
+    const domainData = {
+      name: await erc20Bridged.name(),
+      version: "1",
+      chainId: (await hre.ethers.provider.getNetwork()).chainId,
+      verifyingContract: erc20Bridged.address,
+    };
+
+    // build the types and values for permit hash
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+    const value = {
+      owner: holder.address,
+      spender: recipient.address,
+      value: amount,
+      nonce,
+      deadline,
+    };
+
+    // sign the permit hash
+    const signature = await holder._signTypedData(domainData, types, value);
+
+    // split the signature into its components
+    const sig = hre.ethers.utils.splitSignature(signature);
+
+    // make the signature invalid
+    sig.r = hre.ethers.constants.HashZero;
+
+    // try to perform the permit and ensure it reverts
+    await assert.revertsWith(
+      erc20Bridged.permit(
+        holder.address,
+        recipient.address,
+        amount,
+        deadline,
+        sig.v,
+        sig.r,
+        sig.s
+      ),
+      "ERC20Permit: invalid signature"
+    );
+  })
+
+  .test("permit() :: smart contract", async (ctx) => {
+    const { erc20Bridged } = ctx;
+    const { premint } = ctx.constants;
+    const { recipient, holder, deployer } = ctx.accounts;
+    const { accountStub } = ctx;
+
+    // check owner of the account smart contract
+    assert.equal(await accountStub.owner(), deployer.address);
+
+    // amount that will be permitted
+    const amount = wei`1 ether`;
+
+    // transfer tokens
+    const tx = await erc20Bridged.connect(holder).transfer(accountStub.address, amount);
+
+    // validate balance before permit
+    assert.equalBN(await erc20Bridged.balanceOf(accountStub.address), amount);
+    assert.equalBN(await erc20Bridged.balanceOf(recipient.address), 0);
+
+    // validate allowance before permit
+    assert.equalBN(await erc20Bridged.allowance(accountStub.address, recipient.address), 0);
+
+    // get the nonce of the accountStub
+    const nonce = await erc20Bridged.nonces(accountStub.address);
+
+    // build deadline for the permit
+    const deadline = Math.floor(Date.now() / 1000) + 3600;
+
+    // build the domain data for permit hash
+    const domainData = {
+      name: await erc20Bridged.name(),
+      version: "1",
+      chainId: (await hre.ethers.provider.getNetwork()).chainId,
+      verifyingContract: erc20Bridged.address,
+    };
+
+    // build the types and values for permit hash
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+    const value = {
+      owner: accountStub.address,
+      spender: recipient.address,
+      value: amount,
+      nonce,
+      deadline,
+    };
+
+    // sign the permit hash
+    const signature = await deployer._signTypedData(domainData, types, value);
+
+    // split the signature into its components
+    const sig = hre.ethers.utils.splitSignature(signature);
+
+    // perform the permit and ensure the allowance
+    await erc20Bridged.permit(
+      accountStub.address,
+      recipient.address,
+      amount,
+      deadline,
+      sig.v,
+      sig.r,
+      sig.s
+    );
+    assert.equalBN(await erc20Bridged.allowance(accountStub.address, recipient.address), wei.toBigNumber(amount));
+
+    // ensure recipient can transfer the tokens, and that the balance is updated
+    await erc20Bridged.connect(recipient).transferFrom(accountStub.address, recipient.address, amount);
+    assert.equalBN(
+      await erc20Bridged.balanceOf(recipient.address),
+      wei.toBigNumber(amount)
+    );
+    assert.equalBN(
+      await erc20Bridged.balanceOf(accountStub.address),
+      0
+    );
+  })
+
+  .test("permit() :: smart contract with invalid signature", async (ctx) => {
+    const { erc20Bridged } = ctx;
+    const { premint } = ctx.constants;
+    const { recipient, holder, deployer } = ctx.accounts;
+    const { accountStub } = ctx;
+
+    // check owner of the account smart contract
+    assert.equal(await accountStub.owner(), deployer.address);
+
+    // amount that will be permitted
+    const amount = wei`1 ether`;
+
+    // get the nonce of the accountStub
+    const nonce = await erc20Bridged.nonces(accountStub.address);
+
+    // build deadline for the permit
+    const deadline = Math.floor(Date.now() / 1000) + 3600;
+
+    // build the domain data for permit hash
+    const domainData = {
+      name: await erc20Bridged.name(),
+      version: "1",
+      chainId: (await hre.ethers.provider.getNetwork()).chainId,
+      verifyingContract: erc20Bridged.address,
+    };
+
+    // build the types and values for permit hash
+    const types = {
+      Permit: [
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+      ],
+    };
+    const value = {
+      owner: accountStub.address,
+      spender: recipient.address,
+      value: amount,
+      nonce,
+      deadline,
+    };
+
+    // sign the permit hash
+    const signature = await deployer._signTypedData(domainData, types, value);
+
+    // split the signature into its components
+    const sig = hre.ethers.utils.splitSignature(signature);
+
+    // make the signature invalid
+    sig.r = hre.ethers.constants.HashZero;
+
+    // try to perform the permit and ensure it reverts
+    await assert.revertsWith(
+      erc20Bridged.permit(
+        accountStub.address,
+        recipient.address,
+        amount,
+        deadline,
+        sig.v,
+        sig.r,
+        sig.s
+      ),
+      "ERC20Permit: invalid signature"
+    );
+  })
+
   .test("bridgeMint() :: not owner", async (ctx) => {
     const { erc20Bridged } = ctx;
     const { stranger } = ctx.accounts;
@@ -631,9 +925,14 @@ async function ctxFactory() {
 
   await erc20BridgedProxied.connect(owner).bridgeMint(holder.address, premint);
 
+  const accountStub = await new AccountStub__factory(deployer).deploy(
+    deployer.address
+  );
+
   return {
     accounts: { deployer, owner, recipient, spender, holder, zero, stranger },
     constants: { name, symbol, decimals, premint },
     erc20Bridged: erc20BridgedProxied,
+    accountStub: accountStub,
   };
 }
